@@ -539,12 +539,13 @@ func (i *Install) availableName() error {
 		return nil
 	}
 
-	h, err := i.cfg.Releases.History(start)
-	if err != nil || len(h) < 1 {
-		return nil
+	rel, err := i.cfg.Releases.Get(start, 1)
+	if err != nil {
+		if errors.Is(err, driver.ErrReleaseNotFound) {
+			return nil
+		}
+		return fmt.Errorf("fail to get release \"%s\": %v", start, err)
 	}
-	releaseutil.Reverse(h, releaseutil.SortByRevision)
-	rel := h[0]
 
 	if st := rel.Info.Status; i.Replace && (st == release.StatusUninstalled || st == release.StatusFailed) {
 		return nil
