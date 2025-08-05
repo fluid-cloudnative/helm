@@ -73,19 +73,17 @@ func (u *Uninstall) Run(name string) (*release.UninstallReleaseResponse, error) 
 		return nil, errors.Errorf("uninstall: Release name is invalid: %s", name)
 	}
 
-	rels, err := u.cfg.Releases.History(name)
+	rel, err := u.cfg.Releases.Get(name, 1)
 	if err != nil {
 		if u.IgnoreNotFound {
 			return nil, nil
 		}
 		return nil, errors.Wrapf(err, "uninstall: Release not loaded: %s", name)
 	}
-	if len(rels) < 1 {
+	if rel == nil {
 		return nil, errMissingRelease
 	}
-
-	releaseutil.SortByRevision(rels)
-	rel := rels[len(rels)-1]
+	rels := []*release.Release{rel}
 
 	// TODO: Are there any cases where we want to force a delete even if it's
 	// already marked deleted?
